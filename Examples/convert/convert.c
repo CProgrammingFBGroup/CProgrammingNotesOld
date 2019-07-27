@@ -9,8 +9,6 @@
 
      This program may be freely copied and distributed.
 
-     This program contains 950 lines and uses 31,319 bytes.
-
      Written by Matthew Campbell (1-31-18)
 
 */
@@ -175,344 +173,411 @@ double liters_to_usgallons( const double liters );
 
 int main( void )
 {
+     char buffer[ 3 ];
      double answer, value;
-     int choice, ret;
+     int choice, exit_loop, ret, save_errno;
 
      /* Always initialize your variables before you try to use them. */
 
-     ret = 0;
+     exit_loop = ret = 0;
 
      /* The others will be initialized later. */
 
      do
      {
-
-          /* List the menu for the user. */
-
-          if ( ret != 1 )  /* Suppress the menu if we only read a '\n'. */
+          do
           {
-               list_menu();
-          }
 
-          /* Read the user's choice.  Here ret  */
-          /* holds the function's return value. */
+               /* List the menu for the user. */
 
-          ret = get_input( ">> ", 1.0, 16.0, 1, &choice, &value );
+               /* Suppress the menu if we only read a '\n'. */
 
-          /* The function get_input() will return 1 or -1 if   */
-          /* something went wrong so looping around again will */
-          /* give the user the chance to correct the problem.  */
+               if ( ret != 1 )
+               {
+                    list_menu();
+               }
 
-     }    while( ret != 0 );
+               /* Read the user's choice.  Here ret  */
+               /* holds the function's return value. */
 
-     /* Now we know what the user wants to */
-     /* do and that the choice is valid.   */
+               ret = get_input( ">> ", 1.0, 17.0, 1, &choice, &value );
 
-     printf( "\n" );
-     switch( choice )
-     {
-          case  1: do
-                   {
-                        ret = get_input( "Number of inches? >> ",
-                                         0.0, 12000.0, 0, &choice,
-                                         &value );
-                   }    while( ret != 0 );
-                   answer = inches_to_centimeters( value );
+               /* The function get_input() will return 1 or -1 if   */
+               /* something went wrong so looping around again will */
+               /* give the user the chance to correct the problem.  */
 
-                   /* You might be surprised by just how picky   */
-                   /* floating point numbers can be.  So we have */
-                   /* to test each of them this way.             */
+          }    while( ret != 0 );
 
-                   if ( answer >= 0.999999999999999 &&
-                        answer <= 1.00000000000001 )
-                   {
-                        answer = 1.0;
-                        show_answer( answer, "centimeter" );
-                   }
-                   else
-                   {
-                        show_answer( answer, "centimeters" );
-                   }
-                   break;
-          case  2: do
-                   {
-                        ret = get_input( "Number of centimeters? >> ",
-                                         0.0, 30480.0, 0, &choice,
-                                         &value );
-                   }    while( ret != 0 );
-                   answer = centimeters_to_inches( value );
-                   if ( answer >= 0.999999999999999 &&
-                        answer <= 1.00000000000001 )
-                   {
-                        answer = 1.0;
-                        show_answer( answer, "inch" );
-                   }
-                   else
-                   {
-                        show_answer( answer, "inches" );
-                   }
-                   break;
-          case  3: do
-                   {
-                        ret = get_input( "Number of feet? >> ",
-                                         0.0, 528000.0, 0, &choice,
-                                         &value );
-                   }    while( ret != 0 );
-                   answer = feet_to_meters( value );
-                   if ( answer >= 0.999999999999999 &&
-                        answer <= 1.00000000000001 )
-                   {
-                        answer = 1.0;
-                        show_answer( answer, "meter" );
-                   }
-                   else
-                   {
-                        show_answer( answer, "meters" );
-                   }
-                   break;
-          case  4: do
-                   {
-                        ret = get_input( "Number of meters? >> ",
-                                         0.0, 160935.0, 0, &choice,
-                                         &value );
-                   }    while( ret != 0 );
-                   answer = meters_to_feet( value );
-                   if ( answer >= 0.999999999999999 &&
-                        answer <= 1.00000000000001 )
-                   {
-                        answer = 1.0;
-                        show_answer( answer, "foot" );
-                   }
-                   else
-                   {
-                        show_answer( answer, "feet" );
-                   }
-                   break;
-          case  5: do
-                   {
-                        ret = get_input( "Number of miles? >> ",
-                                         0.0, 1000000.0, 0, &choice,
-                                         &value );
-                   }    while( ret != 0 );
-                   answer = miles_to_kilometers( value );
-                   if ( answer >= 0.999999999999999 &&
-                        answer <= 1.00000000000001 )
-                   {
-                        answer = 1.0;
-                        show_answer( answer, "kilometer" );
-                   }
-                   else
-                   {
-                        show_answer( answer, "kilometers" );
-                   }
-                   break;
-          case  6: do
-                   {
-                        ret = get_input( "Number of kilometers? >> ",
-                                         0.0, 1609344.0, 0, &choice,
-                                         &value );
-                   }    while( ret != 0 );
-                   answer = kilometers_to_miles( value );
-                   if ( answer >= 0.999999999999999 &&
-                        answer <= 1.00000000000001 )
-                   {
-                        answer = 1.0;
-                        show_answer( answer, "mile" );
-                   }
-                   else
-                   {
-                        show_answer( answer, "miles" );
-                   }
-                   break;
-          case  7: do
-                   {
-                        ret = get_input( "Number of degrees Fahrenheit? >> ",
-                                         -459.67, 1800032.0, 0, &choice,
-                                         &value );
-                   }    while( ret != 0 );
-                   answer = fahrenheit_to_celsius( value );
-                   if ( answer >= 0.999999999999999 &&
-                        answer <= 1.00000000000001 )
-                   {
-                        answer = 1.0;
-                        show_answer( answer, "degree Celsius" );
-                   }
-                   else
-                   {
-                        show_answer( answer, "degrees Celsius" );
-                   }
-                   break;
-          case  8: do
-                   {
-                        ret = get_input( "Number of degrees Celsius? >> ",
-                                         -273.15, 1000000.0, 0, &choice,
-                                         &value );
-                   }    while( ret != 0 );
-                   answer = celsius_to_fahrenheit( value );
-                   if ( answer >= 0.999999999999999 &&
-                        answer <= 1.00000000000001 )
-                   {
-                        answer = 1.0;
-                        show_answer( answer, "degree Fahrenheit" );
-                   }
-                   else
-                   {
-                        show_answer( answer, "degrees Fahrenheit" );
-                   }
-                   break;
-          case  9: do
-                   {
-                        ret = get_input( "Number of pounds? >> ",
-                                         0.0, 2204623.0, 0, &choice,
-                                         &value );
-                   }    while( ret != 0 );
-                   answer = pounds_to_kilograms( value );
-                   if ( answer >= 0.999999999999999 &&
-                        answer <= 1.00000000000001 )
-                   {
-                        answer = 1.0;
-                        show_answer( answer, "kilogram" );
-                   }
-                   else
-                   {
-                        show_answer( answer, "kilograms" );
-                   }
-                   break;
-          case 10: do
-                   {
-                        ret = get_input( "Number of kilograms? >> ",
-                                         0.0, 1000000.0, 0, &choice,
-                                         &value );
-                   }    while( ret != 0 );
-                   answer = kilograms_to_pounds( value );
-                   if ( answer >= 0.999999999999999 &&
-                        answer <= 1.00000000000001 )
-                   {
-                        answer = 1.0;
-                        show_answer( answer, "pound" );
-                   }
-                   else
-                   {
-                        show_answer( answer, "pounds" );
-                   }
-                   break;
-          case 11: do
-                   {
-                        ret = get_input( "Number of ounces? >> ",
-                                         0.0, 35274.0, 0, &choice, &value );
-                   }    while( ret != 0 );
-                   answer = ounces_to_grams( value );
-                   if ( answer >= 0.999999999999999 &&
-                        answer <= 1.00000000000001 )
-                   {
-                        answer = 1.0;
-                        show_answer( answer, "gram" );
-                   }
-                   else
-                   {
-                        show_answer( answer, "grams" );
-                   }
-                   break;
-          case 12: do
-                   {
-                        ret = get_input( "Number of grams? >> ",
-                                         0.0, 1000000.0, 0, &choice,
-                                         &value );
-                   }    while( ret != 0 );
-                   answer = grams_to_ounces( value );
-                   if ( answer >= 0.999999999999999 &&
-                        answer <= 1.00000000000001 )
-                   {
-                        answer = 1.0;
-                        show_answer( answer, "ounce" );
-                   }
-                   else
-                   {
-                        show_answer( answer, "ounces" );
-                   }
-                   break;
-          case 13: do
-                   {
-                        ret = get_input( "Number of fluid ounces? >> ",
-                                         0.0, 33815.0, 0, &choice, &value );
-                   }    while( ret != 0 );
-                   answer = fluid_ounces_to_milliliters( value );
-                   if ( answer >= 0.999999999999999 &&
-                        answer <= 1.00000000000001 )
-                   {
-                        answer = 1.0;
-                        show_answer( answer, "milliliter" );
-                   }
-                   else
-                   {
-                        show_answer( answer, "milliliters" );
-                   }
-                   break;
-          case 14: do
-                   {
-                        ret = get_input( "Number of milliliters? >> ",
-                                         0.0, 1000000.0, 0, &choice,
-                                         &value );
-                   }    while( ret != 0 );
-                   answer = milliliters_to_fluid_ounces( value );
-                   if ( answer >= 0.999999999999999 &&
-                        answer <= 1.00000000000001 )
-                   {
-                        answer = 1.0;
-                        show_answer( answer, "fluid ounce" );
-                   }
-                   else
-                   {
-                        show_answer( answer, "fluid ounces" );
-                   }
-                   break;
-          case 15: do
-                   {
-                        ret = get_input( "Number of US gallons? >> ",
-                                         0.0, 1000.0, 0, &choice, &value );
-                   }    while( ret != 0 );
-                   answer = usgallons_to_liters( value );
-                   if ( answer >= 0.999999999999999 &&
-                        answer <= 1.00000000000001 )
-                   {
-                        answer = 1.0;
-                        show_answer( answer, "liter" );
-                   }
-                   else
-                   {
-                        show_answer( answer, "liters" );
-                   }
-                   break;
-          case 16: do
-                   {
-                        ret = get_input( "Number of liters? >> ",
-                                         0.0, 3786.0, 0, &choice, &value );
-                   }    while( ret != 0 );
-                   answer = liters_to_usgallons( value );
-                   if ( answer >= 0.999999999999999 &&
-                        answer <= 1.00000000000001 )
-                   {
-                        answer = 1.0;
-                        show_answer( answer, "gallon" );
-                   }
-                   else
-                   {
-                        show_answer( answer, "gallons" );
-                   }
-                   break;
+          /* Now we know what the user wants to */
+          /* do and that the choice is valid.   */
 
-                   /* Reaching the default case condition in       */
-                   /* this program should be logically impossible. */
+          printf( "\n" );
+          switch( choice )
+          {
+               case  1: do
+                        {
+                             ret = get_input( "Number of inches? >> ",
+                                              0.0, 12000.0, 0, &choice,
+                                              &value );
+                        }    while( ret != 0 );
+                        answer = inches_to_centimeters( value );
 
-         default : printf( "Something went wrong.\n" );
-                   printf( "\
+                        /* You might be surprised by just how picky   */
+                        /* floating point numbers can be.  So we have */
+                        /* to test each of them this way.             */
+
+                        if ( answer >= 0.999999999999999 &&
+                             answer <= 1.00000000000001 )
+                        {
+                             answer = 1.0;
+                             show_answer( answer, "centimeter" );
+                        }
+                        else
+                        {
+                             show_answer( answer, "centimeters" );
+                        }
+                        break;
+
+               case  2: do
+                        {
+                             ret = get_input( "Number of centimeters? >> ",
+                                              0.0, 30480.0, 0, &choice,
+                                              &value );
+                        }    while( ret != 0 );
+                        answer = centimeters_to_inches( value );
+                        if ( answer >= 0.999999999999999 &&
+                             answer <= 1.00000000000001 )
+                        {
+                             answer = 1.0;
+                             show_answer( answer, "inch" );
+                        }
+                        else
+                        {
+                             show_answer( answer, "inches" );
+                        }
+                        break;
+
+               case  3: do
+                        {
+                             ret = get_input( "Number of feet? >> ",
+                                              0.0, 528000.0, 0, &choice,
+                                              &value );
+                        }    while( ret != 0 );
+                        answer = feet_to_meters( value );
+                        if ( answer >= 0.999999999999999 &&
+                             answer <= 1.00000000000001 )
+                        {
+                             answer = 1.0;
+                             show_answer( answer, "meter" );
+                        }
+                        else
+                        {
+                             show_answer( answer, "meters" );
+                        }
+                        break;
+
+               case  4: do
+                        {
+                             ret = get_input( "Number of meters? >> ",
+                                              0.0, 160935.0, 0, &choice,
+                                              &value );
+                        }    while( ret != 0 );
+                        answer = meters_to_feet( value );
+                        if ( answer >= 0.999999999999999 &&
+                             answer <= 1.00000000000001 )
+                        {
+                             answer = 1.0;
+                             show_answer( answer, "foot" );
+                        }
+                        else
+                        {
+                             show_answer( answer, "feet" );
+                        }
+                        break;
+
+               case  5: do
+                        {
+                             ret = get_input( "Number of miles? >> ",
+                                              0.0, 1000000.0, 0, &choice,
+                                              &value );
+                        }    while( ret != 0 );
+                        answer = miles_to_kilometers( value );
+                        if ( answer >= 0.999999999999999 &&
+                             answer <= 1.00000000000001 )
+                        {
+                             answer = 1.0;
+                             show_answer( answer, "kilometer" );
+                        }
+                        else
+                        {
+                             show_answer( answer, "kilometers" );
+                        }
+                        break;
+
+               case  6: do
+                        {
+                             ret = get_input( "Number of kilometers? >> ",
+                                              0.0, 1609344.0, 0, &choice,
+                                              &value );
+                        }    while( ret != 0 );
+                        answer = kilometers_to_miles( value );
+                        if ( answer >= 0.999999999999999 &&
+                             answer <= 1.00000000000001 )
+                        {
+                             answer = 1.0;
+                             show_answer( answer, "mile" );
+                        }
+                        else
+                        {
+                             show_answer( answer, "miles" );
+                        }
+                        break;
+
+               case  7: do
+                        {
+                             ret = get_input( "\
+Number of degrees Fahrenheit? >> ",
+                                              -459.67, 1800032.0, 0,
+                                              &choice, &value );
+                        }    while( ret != 0 );
+                        answer = fahrenheit_to_celsius( value );
+                        if ( answer >= 0.999999999999999 &&
+                             answer <= 1.00000000000001 )
+                        {
+                             answer = 1.0;
+                             show_answer( answer, "degree Celsius" );
+                        }
+                        else if ( answer <= ( -0.999999999999999 ) &&
+                                  answer >= ( -1.00000000000001 ) )
+                        {
+                             answer = ( -1.0 );
+                             show_answer( answer, "degree Celsius" );
+                        }
+                        else
+                        {
+                             show_answer( answer, "degrees Celsius" );
+                        }
+                        break;
+
+               case  8: do
+                        {
+                             ret = get_input( "\
+Number of degrees Celsius? >> ",
+                                              -273.15, 1000000.0, 0,
+                                              &choice, &value );
+                        }    while( ret != 0 );
+                        answer = celsius_to_fahrenheit( value );
+                        if ( answer >= 0.999999999999999 &&
+                             answer <= 1.00000000000001 )
+                        {
+                             answer = 1.0;
+                             show_answer( answer, "degree Fahrenheit" );
+                        }
+                        else if ( answer <= ( -0.999999999999999 ) &&
+                                  answer >= ( -1.00000000000001 ) )
+                        {
+                             answer = ( -1.0 );
+                             show_answer( answer, "degree Fahrenheit" );
+                        }
+                        else
+                        {
+                             show_answer( answer, "degrees Fahrenheit" );
+                        }
+                        break;
+
+               case  9: do
+                        {
+                             ret = get_input( "Number of pounds? >> ",
+                                              0.0, 2204623.0, 0, &choice,
+                                              &value );
+                        }    while( ret != 0 );
+                        answer = pounds_to_kilograms( value );
+                        if ( answer >= 0.999999999999999 &&
+                             answer <= 1.00000000000001 )
+                        {
+                             answer = 1.0;
+                             show_answer( answer, "kilogram" );
+                        }
+                        else
+                        {
+                             show_answer( answer, "kilograms" );
+                        }
+                        break;
+
+               case 10: do
+                        {
+                             ret = get_input( "Number of kilograms? >> ",
+                                              0.0, 1000000.0, 0, &choice,
+                                              &value );
+                        }    while( ret != 0 );
+                        answer = kilograms_to_pounds( value );
+                        if ( answer >= 0.999999999999999 &&
+                             answer <= 1.00000000000001 )
+                        {
+                             answer = 1.0;
+                             show_answer( answer, "pound" );
+                        }
+                        else
+                        {
+                             show_answer( answer, "pounds" );
+                        }
+                        break;
+
+               case 11: do
+                        {
+                             ret = get_input( "Number of ounces? >> ",
+                                              0.0, 35274.0, 0, &choice,
+                                              &value );
+                        }    while( ret != 0 );
+                        answer = ounces_to_grams( value );
+                        if ( answer >= 0.999999999999999 &&
+                             answer <= 1.00000000000001 )
+                        {
+                             answer = 1.0;
+                             show_answer( answer, "gram" );
+                        }
+                        else
+                        {
+                             show_answer( answer, "grams" );
+                        }
+                        break;
+
+               case 12: do
+                        {
+                             ret = get_input( "Number of grams? >> ",
+                                              0.0, 1000000.0, 0, &choice,
+                                              &value );
+                        }    while( ret != 0 );
+                        answer = grams_to_ounces( value );
+                        if ( answer >= 0.999999999999999 &&
+                             answer <= 1.00000000000001 )
+                        {
+                             answer = 1.0;
+                             show_answer( answer, "ounce" );
+                        }
+                        else
+                        {
+                             show_answer( answer, "ounces" );
+                        }
+                        break;
+
+               case 13: do
+                        {
+                             ret = get_input( "Number of fluid ounces? >> ",
+                                              0.0, 33815.0, 0, &choice,
+                                              &value );
+                        }    while( ret != 0 );
+                        answer = fluid_ounces_to_milliliters( value );
+                        if ( answer >= 0.999999999999999 &&
+                             answer <= 1.00000000000001 )
+                        {
+                             answer = 1.0;
+                             show_answer( answer, "milliliter" );
+                        }
+                        else
+                        {
+                             show_answer( answer, "milliliters" );
+                        }
+                        break;
+
+               case 14: do
+                        {
+                             ret = get_input( "Number of milliliters? >> ",
+                                              0.0, 1000000.0, 0, &choice,
+                                              &value );
+                        }    while( ret != 0 );
+                        answer = milliliters_to_fluid_ounces( value );
+                        if ( answer >= 0.999999999999999 &&
+                             answer <= 1.00000000000001 )
+                        {
+                             answer = 1.0;
+                             show_answer( answer, "fluid ounce" );
+                        }
+                        else
+                        {
+                             show_answer( answer, "fluid ounces" );
+                        }
+                        break;
+
+               case 15: do
+                        {
+                             ret = get_input( "Number of US gallons? >> ",
+                                              0.0, 1000.0, 0, &choice,
+                                              &value );
+                        }    while( ret != 0 );
+                        answer = usgallons_to_liters( value );
+                        if ( answer >= 0.999999999999999 &&
+                             answer <= 1.00000000000001 )
+                        {
+                             answer = 1.0;
+                             show_answer( answer, "liter" );
+                        }
+                        else
+                        {
+                             show_answer( answer, "liters" );
+                        }
+                        break;
+
+               case 16: do
+                        {
+                             ret = get_input( "Number of liters? >> ",
+                                              0.0, 3786.0, 0, &choice,
+                                              &value );
+                        }    while( ret != 0 );
+                        answer = liters_to_usgallons( value );
+                        if ( answer >= 0.999999999999999 &&
+                             answer <= 1.00000000000001 )
+                        {
+                             answer = 1.0;
+                             show_answer( answer, "gallon" );
+                        }
+                        else
+                        {
+                             show_answer( answer, "gallons" );
+                        }
+                        break;
+
+              case 17 : exit_loop = 1;
+                        break;
+
+                        /* Reaching the default case condition in       */
+                        /* this program should be logically impossible. */
+
+              default : printf( "Something went wrong.\n" );
+                        printf( "\
 The default case condition should never be reached in this program.\n" );
-                   return 1;
+                        return 1;
 
-     }     /* switch( choice ) */
+          }     /* switch( choice ) */
+
+          /* Pause so the user can read the answer. */
+
+          if ( choice != 17 )
+          {
+               printf( "Press Enter to continue... " );
+               fflush( stdout );
+               errno = 0;
+               if ( fgets( buffer, 3, stdin ) == NULL )
+               {
+                    save_errno = errno;
+                    if ( feof( stdin ) )
+                    {
+                         fprintf( stderr, "\nEnd of file on stdin.\n\n" );
+                         return ( -1 );
+                    }
+                    fprintf( stderr, "\nFailed to read from stdin.\n" );
+                    fprintf( stderr, "Error: %s.\n\n",
+                             strerror( save_errno ) );
+                    return ( -1 );
+               }
+               printf( "\n" );
+          }    /* if ( choice != 17 ) */
+
+     }    while( exit_loop == 0 );
 
      /* We're finally done. */
 
+     printf( "Exiting.\n\n" );
      return 0;
 }
 
@@ -555,7 +620,7 @@ int get_input( const char *prompt, const double min_value,
                double *value )
 {
      static char buffer[ 130 ];
-     int exit_loop, size;
+     int exit_loop, save_errno, size;
 
      exit_loop = 0;
      do
@@ -567,8 +632,10 @@ int get_input( const char *prompt, const double min_value,
           /* for the newline and 1 for the null on the end of the  */
           /* input string.                                         */
 
+          errno = 0;
           if ( fgets( buffer, 130, stdin ) == NULL )
           {
+               save_errno = errno;
 
                /* If we've reached the end of the file on stdin then one */
                /* two things has happened.  Either the user entered the  */
@@ -582,7 +649,7 @@ int get_input( const char *prompt, const double min_value,
                     exit( -1 );
                }
                fprintf( stderr, "\nFailed to read from stdin.\n" );
-               fprintf( stderr, "Error: %s.\n\n", strerror( errno ) );
+               fprintf( stderr, "Error: %s.\n\n", strerror( save_errno ) );
                exit( -1 );
           }
 
@@ -712,6 +779,12 @@ int get_input( const char *prompt, const double min_value,
 
 void list_menu( void )
 {
+     /* Clear the screen. */
+
+     printf( "%c[1;1H%c[2J", 27, 27 );
+
+     /* Print the menu. */
+
      printf( "Please choose from one of the following options:\n\n" );
 
      /* We can escape the newline in the source  */
@@ -733,8 +806,8 @@ void list_menu( void )
 13) Convert from fluid ounces to milliliters.\n\
 14) Convert from milliliters to fluid ounces.\n\
 15) Convert from US gallons to liters.\n\
-16) Convert from liters to US gallons.\n\n" );
-
+16) Convert from liters to US gallons.\n\
+17) Exit.\n\n" );
      return;
 }
 
