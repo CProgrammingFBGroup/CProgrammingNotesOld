@@ -25,7 +25,7 @@ int main( void )
      save_errno = errno;
      if ( ret != 0 )
      {
-          printf( "Something went wrong." );
+          printf( "\nSomething went wrong." );
           if ( save_errno != 0 )
           {
                printf( "  Error: %s.\n", strerror( save_errno ),
