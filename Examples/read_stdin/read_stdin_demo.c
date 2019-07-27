@@ -12,7 +12,8 @@
 
 /* Prototype read_stdin() */
 
-int read_stdin( char *buffer, const int length, const char *prompt );
+int read_stdin( char *buffer, const int length, const char *prompt,
+                const int reprompt );
 
 int main( void )
 {
@@ -20,14 +21,15 @@ int main( void )
      int ret, save_errno;
 
      errno = 0;
-     ret = read_stdin( buffer, 1024, "prompt >> " );
+     ret = read_stdin( buffer, 1024, "prompt >> ", 1 );
      save_errno = errno;
      if ( ret != 0 )
      {
           printf( "Something went wrong." );
           if ( save_errno != 0 )
           {
-               printf( "  Error: %s.\n", strerror( save_errno ) );
+               printf( "  Error: %s.\n", strerror( save_errno ),
+                                              save_errno );
           }
           else
           {
