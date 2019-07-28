@@ -67,20 +67,20 @@ int display_stat_structure( const struct stat *ptr )
 
      /* Protection bits: */
 
-     printf( "   st_mode: 0%lo, string: %s\n", ptr->st_mode,
+     printf( "   st_mode: 0%o, string: %s\n", ptr->st_mode,
              mode_string( ptr->st_mode ) );
 
      /* Number of hard links to this file: */
 
-     printf( "  st_nlink: %lu\n", ptr->st_nlink );
+     printf( "  st_nlink: %u\n", ptr->st_nlink );
 
      /* UID of file owner: */
 
-     printf( "    st_uid: %lu\n", ptr->st_uid );
+     printf( "    st_uid: %u\n", ptr->st_uid );
 
      /* GID of file owner: */
 
-     printf( "    st_gid: %lu\n", ptr->st_gid );
+     printf( "    st_gid: %u\n", ptr->st_gid );
 
      /* Device id, if special file: */
 
@@ -88,7 +88,7 @@ int display_stat_structure( const struct stat *ptr )
 
      /* File size in bytes: */
 
-     printf( "   st_size: %lu\n", ptr->st_size );
+     printf( "   st_size: %llu\n", ptr->st_size );
 
      /* I/O block size: */
 
@@ -96,7 +96,7 @@ int display_stat_structure( const struct stat *ptr )
 
      /* Number of 512 byte blocks allocated: */
 
-     printf( " st_blocks: %lld, (%lu bytes)\n",
+     printf( " st_blocks: %lld, (%llu bytes)\n",
              ptr->st_blocks, ( ptr->st_blocks * 512 ) );
 
      /* Last access time: */
@@ -151,7 +151,7 @@ void init_stat_structure( struct stat *ptr )
 
 */
 
-const char *mode_string( mode_t mode )  /* mode_t is unsigned long int */
+const char *mode_string( mode_t mode )  /* mode_t is unsigned */
 {
      static char mode_str[ 11 ];
      int bits;
