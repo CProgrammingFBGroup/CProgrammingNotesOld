@@ -41,6 +41,6 @@ int does_file_exist( const char *name )
      return 1;  /* File exists. */
 }
 
-#endif
+#endif  /* _DOES_FILE_EXIST_C */
 
 /* EOF does_file_exist.c */

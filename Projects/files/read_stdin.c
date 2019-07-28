@@ -2,10 +2,6 @@
 
      read_stdin.c
 
-     This is an open source library file that can be used in
-     a program by using #include "read_stdin.c"
-     with the other include statements in your source code.
-
      This function uses fgets() to read input from stdin.  If a
      character string is provided as a prompt it will be printed
      first.  Input only containing a newline will be ignored.
@@ -20,6 +16,10 @@
      const char *prompt tells this function to print the prompt string
                         before requesting input.  Use NULL to disable
                         this option.
+
+     const int reprompt will cause this function to reprint the prompt,
+                        if a prompt string has been provided, if the
+                        user only enters a blank line.
 
      Returns 0 on success and 1 on error.
    
@@ -46,11 +46,12 @@
 #define EINVAL 22
 #endif
 
-#ifndef ENOMSG
-#define ENOMSG 42
+#ifndef ENODATA
+#define ENODATA 61
 #endif
 
-int read_stdin( char *buffer, const int length, const char *prompt )
+int read_stdin( char *buffer, const int length, const char *prompt,
+                const int reprompt )
 {
      int exit_loop, size, use_prompt;
 
@@ -65,6 +66,12 @@ int read_stdin( char *buffer, const int length, const char *prompt )
      /* See if the buffer isn't long enough to be useful or is too long. */
 
      if ( length < 3 || length > 1000000 )
+     {
+          errno = EINVAL;
+          return 1;
+     }
+
+     if ( reprompt != 0 && reprompt != 1 )
      {
           errno = EINVAL;
           return 1;
@@ -85,6 +92,14 @@ int read_stdin( char *buffer, const int length, const char *prompt )
           use_prompt = 1;
      }
 
+     /* We can't reprint the prompt if we don't have one to use. */
+
+     if ( use_prompt == 0 && reprompt == 1 )
+     {
+          errno = EINVAL;
+          return 1;
+     }
+
      exit_loop = 0;
      do
      {
@@ -101,20 +116,20 @@ int read_stdin( char *buffer, const int length, const char *prompt )
           if ( fgets( buffer, length, stdin ) == NULL )
           {
 
-               /* If we've reached the end of the file on stdin then one */
-               /* two things has happened.  Either the user entered the  */
-               /* end of file character as their input or the user has   */
-               /* redirected stdin on the command line so our program    */
-               /* will read from a file instead of the user's keyboard.  */
+               /*
+
+                    If we've reached the end of the file on stdin then one
+                    two things has happened.  Either the user entered the
+                    end of file character as their input or the user has
+                    redirected stdin on the command line so our program
+                    will read from a file instead of the user's keyboard.
+
+               */
 
                if ( feof( stdin ) )
                {
-                    errno = ENOMSG;
+                    errno = ENODATA;
                }
-
-               /* If we don't have an end of file condition */
-               /* then fgets() has already set the errno.   */
-
                return 1;
           }
 
@@ -137,13 +152,16 @@ int read_stdin( char *buffer, const int length, const char *prompt )
           }
           else if ( use_prompt == 1 && size == 1 && buffer[ 0 ] == '\n' )
           {
-               use_prompt = ( -1 );  /* Silently loop back around. */
+               if ( reprompt == 0 )
+               {
+                    use_prompt = ( -1 );  /* Silently loop back around. */
+               }
           }
 
      }    while( exit_loop == 0 );
      return 0;
 }
 
-#endif
+#endif  /* _READ_STDIN_C */
 
 /* EOF read_stdin.c */

@@ -13,7 +13,7 @@
 
 #include <stdio.h>
 
-#include "does_file_exist.c"
+int does_file_exist( const char *name );
 
 int create_file( const char *name )
 {
@@ -48,6 +48,6 @@ int create_file( const char *name )
      return 0;  /* Success. */
 }
 
-#endif
+#endif  /* _CREATE_FILE_C */
 
 /* EOF create_file.c */

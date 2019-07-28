@@ -31,11 +31,12 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/sysmacros.h>
 
 #define MAJOR_VERSION 0
 #define MINOR_VERSION 1
-#define PATCH_VERSION 0
-#define UPDATE_VERSION 1
+#define PATCH_VERSION 1
+#define UPDATE_VERSION 2
 
 /*
 
@@ -70,10 +71,13 @@ int  look_for_slash( char *str );
 
 /* These are external functions in other files: */
 
-int create_file( const char *name );
-int display_stat_structure( const struct stat *ptr );
-int does_file_exist( const char *name );
-int read_stdin( char *buffer, const int length, const char *prompt );
+       int  create_file( const char *name );
+       int  display_stat_structure( const struct stat *ptr );
+       int  does_file_exist( const char *name );
+       void init_stat_structure( struct stat *ptr );
+const char *mode_string( mode_t mode );
+       int  read_stdin( char *buffer, const int length, const char *prompt,
+                        const int reprompt );
 
 /* Function definitions: */
 
@@ -95,7 +99,7 @@ int main( void )
      do
      {
           getcwd( cwd, 1025 );
-          ret = read_stdin( buffer, 4, "Main menu >> " );
+          ret = read_stdin( buffer, 4, "Main menu >> ", 1 );
           printf( "\n" );
           if ( ret != 0 )
           {
@@ -211,7 +215,7 @@ void change_directory( char *cwd )
      }
 
      printf( "What directory would you like to change to?\n" );
-     ret = read_stdin( buffer, 1026, ">> " );
+     ret = read_stdin( buffer, 1026, ">> ", 1 );
      save_errno = errno;
      printf( "\n" );
      if ( ret != 0 )
@@ -357,7 +361,7 @@ void show_files( char *cwd )
                     if ( S_ISBLK( stats.st_mode ) ||
                          S_ISCHR( stats.st_mode ) )
                     {
-                         printf( "%s %5lu %5lu %4lu %5lu %s %s\n",
+                         printf( "%s %5u %5u %4lu %5lu %s %s\n",
                                  mode_string( stats.st_mode ),
                                  stats.st_uid, stats.st_gid,
                                  MAJOR( stats.st_dev ),
@@ -374,7 +378,7 @@ void show_files( char *cwd )
 
                          */
 
-                         printf( "%s %5lu %5lu %10lu %s %s\n",
+                         printf( "%s %5u %5u %10u %s %s\n",
                                  mode_string( stats.st_mode ),
                                  stats.st_uid, stats.st_gid,
                                  ( size_t )stats.st_size, str,
@@ -421,7 +425,7 @@ void stat_file( char *cwd )
      }
 
      printf( "What file would you like to stat?\n" );
-     ret = read_stdin( buffer, 1026, ">> " );
+     ret = read_stdin( buffer, 1026, ">> ", 1 );
      save_errno = errno;
      printf( "\n" );
      if ( ret != 0 )
@@ -493,7 +497,7 @@ void change_protection( char *cwd )
 
      printf( "\
 What file would you like to change the protection bits for?\n" );
-     ret = read_stdin( buffer, 1026, ">> " );
+     ret = read_stdin( buffer, 1026, ">> ", 1 );
      save_errno = errno;
      printf( "\n" );
      if ( ret != 0 )
@@ -542,9 +546,9 @@ characters '/' in your string.\n\n" );
 
      old = stats.st_mode & 07777;
      printf( "The protection bits for the file: %s\n", buffer );
-     printf( "are currently set to: 0%lo\n\n", old );
+     printf( "are currently set to: 0%o\n\n", old );
      printf( "What would you like to try to change them to?\n" );
-     ret = read_stdin( str, 7, ">> " );
+     ret = read_stdin( str, 7, ">> ", 1 );
      save_errno = errno;
      printf( "\n" );
      if ( ret != 0 )
@@ -557,7 +561,7 @@ characters '/' in your string.\n\n" );
           printf( "\n" );
           return;
      }
-     if ( sscanf( str, "%lo", &new ) != 1 )
+     if ( sscanf( str, "%ho", &new ) != 1 )
      {
           printf( "Sorry, that is not valid input.\n\n" );
           return;
@@ -621,7 +625,6 @@ void create_new_file( char *cwd )
      dev_t device, major, minor;
      mode_t mode;
      int ret, save_errno, type;
-     struct stat stats;
 
      if ( cwd == NULL )
      {
@@ -634,7 +637,7 @@ void create_new_file( char *cwd )
      }
 
      printf( "What file would you like to create?\n" );
-     ret = read_stdin( name1, 1026, ">> " );
+     ret = read_stdin( name1, 1026, ">> ", 1 );
      save_errno = errno;
      printf( "\n" );
      if ( ret != 0 )
@@ -699,7 +702,7 @@ exists in the current directory.\n\n" );
      printf( "5) A named socket\n" );
      printf( "6) A regular file\n" );
      printf( "7) A symbolic link\n\n" );
-     ret = read_stdin( buffer, 3, ">> " );
+     ret = read_stdin( buffer, 3, ">> ", 1 );
      save_errno = errno;
      printf( "\n" );
      if ( ret != 0 )
@@ -729,7 +732,7 @@ exists in the current directory.\n\n" );
      {
           printf( "\
 What is the major device number of the block device?\n" );
-          ret = read_stdin( buffer, 12, ">> " );
+          ret = read_stdin( buffer, 12, ">> ", 1 );
           save_errno = errno;
           printf( "\n" );
           if ( ret != 0 )
@@ -742,14 +745,14 @@ What is the major device number of the block device?\n" );
                printf( "\n" );
                return;
           }
-          if ( sscanf( buffer, "%lu", &major ) != 1 )
+          if ( sscanf( buffer, "%u", &major ) != 1 )
           {
                printf( "Sorry, that is not valid input.\n\n" );
                return;
           }
           printf( "\
 What is the minor device number of the block device?\n" );
-          ret = read_stdin( buffer, 12, ">> " );
+          ret = read_stdin( buffer, 12, ">> ", 1 );
           save_errno = errno;
           printf( "\n" );
           if ( ret != 0 )
@@ -762,7 +765,7 @@ What is the minor device number of the block device?\n" );
                printf( "\n" );
                return;
           }
-          if ( sscanf( buffer, "%lu", &minor ) != 1 )
+          if ( sscanf( buffer, "%u", &minor ) != 1 )
           {
                printf( "Sorry, that is not valid input.\n\n" );
                return;
@@ -821,7 +824,7 @@ Successfully created the block device file: %s\n\n", name1 );
      {
           printf( "\
 What is the major device number of the character device?\n" );
-          ret = read_stdin( buffer, 12, ">> " );
+          ret = read_stdin( buffer, 12, ">> ", 1 );
           save_errno = errno;
           printf( "\n" );
           if ( ret != 0 )
@@ -834,14 +837,14 @@ What is the major device number of the character device?\n" );
                printf( "\n" );
                return;
           }
-          if ( sscanf( buffer, "%lu", &major ) != 1 )
+          if ( sscanf( buffer, "%u", &major ) != 1 )
           {
                printf( "Sorry, that is not valid input.\n\n" );
                return;
           }
           printf( "\
 What is the minor device number of the character device?\n" );
-          ret = read_stdin( buffer, 12, ">> " );
+          ret = read_stdin( buffer, 12, ">> ", 1 );
           save_errno = errno;
           printf( "\n" );
           if ( ret != 0 )
@@ -854,7 +857,7 @@ What is the minor device number of the character device?\n" );
                printf( "\n" );
                return;
           }
-          if ( sscanf( buffer, "%lu", &minor ) != 1 )
+          if ( sscanf( buffer, "%u", &minor ) != 1 )
           {
                printf( "Sorry, that is not valid input.\n\n" );
                return;
@@ -911,7 +914,7 @@ Successfully created the character device file: %s\n\n", name1 );
      else if ( type == 3 )  /* Hard link */
      {
           printf( "What file would you like to make a hard link to?\n" );
-          ret = read_stdin( name2, 1026, ">> " );
+          ret = read_stdin( name2, 1026, ">> ", 1 );
           save_errno = errno;
           printf( "\n" );
           if ( ret != 0 )
@@ -1160,7 +1163,7 @@ Successfully created the regular file: %s\n\n", name1 );
      {
           printf( "\
 What file would you like to make a symbolic link to?\n" );
-          ret = read_stdin( name2, 1026, ">> " );
+          ret = read_stdin( name2, 1026, ">> ", 1 );
           save_errno = errno;
           printf( "\n" );
           if ( ret != 0 )
@@ -1286,7 +1289,7 @@ void read_from_file( char *cwd )
      }
 
      printf( "What file would you like to read from?\n" );
-     ret = read_stdin( name, 1026, ">> " );
+     ret = read_stdin( name, 1026, ">> ", 1 );
      save_errno = errno;
      printf( "\n" );
      if ( ret != 0 )
@@ -1400,7 +1403,6 @@ void write_to_file( char *cwd )
      FILE *fp;
      char buffer[ 82 ], name[ 1026 ];
      int choice, exit_loop, ret, save_errno;
-     struct stat stats;
 
      if ( cwd == NULL )
      {
@@ -1413,7 +1415,7 @@ void write_to_file( char *cwd )
      }
 
      printf( "What file would you like to write to?\n" );
-     ret = read_stdin( name, 1026, ">> " );
+     ret = read_stdin( name, 1026, ">> ", 1 );
      save_errno = errno;
      printf( "\n" );
      if ( ret != 0 )
@@ -1518,7 +1520,7 @@ Sorry, something went wrong while writing.\n" );
                     {
                          printf( "\n\
 Would you like to write to the file again? (Yes = 1, No = 0)\n" );
-                         ret = read_stdin( buffer, 3, ">> " );
+                         ret = read_stdin( buffer, 3, ">> ", 1 );
                          save_errno = errno;
                          if ( ret != 0 )
                          {
@@ -1598,7 +1600,7 @@ void rename_file( char *cwd )
      }
 
      printf( "What file would you like to rename?\n" );
-     ret = read_stdin( old, 1026, ">> " );
+     ret = read_stdin( old, 1026, ">> ", 1 );
      save_errno = errno;
      printf( "\n" );
      if ( ret != 0 )
@@ -1651,7 +1653,7 @@ The specified file does not exist in the current directory.\n\n" );
      }
 
      printf( "What would you like to change the file's name to?\n" );
-     ret = read_stdin( new, 1026, ">> " );
+     ret = read_stdin( new, 1026, ">> ", 1 );
      save_errno = errno;
      printf( "\n" );
      if ( ret != 0 )
@@ -1793,7 +1795,7 @@ void remove_file( char *cwd )
      }
 
      printf( "What file would you like to remove?\n" );
-     ret = read_stdin( buffer, 1026, ">> " );
+     ret = read_stdin( buffer, 1026, ">> ", 1 );
      save_errno = errno;
      printf( "\n" );
      if ( ret != 0 )
@@ -1904,7 +1906,7 @@ void create_directory( char *cwd )
      }
 
      printf( "What directory would you like to create?\n" );
-     ret = read_stdin( buffer, 1026, ">> " );
+     ret = read_stdin( buffer, 1026, ">> ", 1 );
      save_errno = errno;
      printf( "\n" );
      if ( ret != 0 )
@@ -2018,7 +2020,7 @@ void remove_directory( char *cwd )
      }
 
      printf( "What directory would you like to remove?\n" );
-     ret = read_stdin( buffer, 1026, ">> " );
+     ret = read_stdin( buffer, 1026, ">> ", 1 );
      save_errno = errno;
      printf( "\n" );
      if ( ret != 0 )
