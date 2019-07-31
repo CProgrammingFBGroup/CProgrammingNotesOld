@@ -47,7 +47,7 @@ int main( int argc, char **argv )
 {
      FILE *infile, *outfile;
      static char infile_name[ 1036 ], outfile_name[ 1036 ];
-     int bytes, current, last, ret, save_errno, was_newline;
+     int count, current, last, ret, save_errno, spaces, was_newline;
 
      /* Make sure we have received the correct arguments. */
 
@@ -204,7 +204,7 @@ unwrap: Failed to close the file \"%s\".\n", argv[ 1 ] );
 
      /* Initialize: */
 
-     bytes = was_newline = 0;
+     spaces = was_newline = 0;
      current = last = ( -1 );
 
      /* Go to work: */
@@ -212,11 +212,92 @@ unwrap: Failed to close the file \"%s\".\n", argv[ 1 ] );
      while( !feof( infile ) && !ferror( infile ) &&
             !ferror( outfile ) && ( current = fgetc( infile ) ) != EOF )
      {
-          bytes++;
           if ( current != '\n' )
           {
+               /*
+
+                    If a poorly formed text file that does not end with
+                    a newline character is used as the input file and
+                    the file ends with a newline character followed by
+                    one or more space characters then the last newline
+                    would be converted to a space which would disrupt
+                    the required reciprocity between wrap and unwrap.
+
+                    As a result, we must keep track of this condition
+                    while using nonseekable file streams and without
+                    buffering more than two bytes.  We need to keep
+                    track of the number of space characters after the
+                    newline character that was converted to a space,
+                    but has yet to be written to the output file stream.
+
+               */
+
+               if ( current == 32 )  /* Space */
+               {
+                    if ( spaces > 0 )
+                    {
+                         spaces++;
+                    }
+                    else if ( was_newline == 1 )
+                    {
+                         spaces = 1;
+                    }
+               }
+               else
+               {
+                    if ( spaces > 0 )
+                    {
+                         for( count = spaces; count >= 0; count-- )
+                         {
+                              ret = write_previous_byte( 32, infile,
+                                                         outfile,
+                                                         infile_name,
+                                                         outfile_name );
+                              if ( ret != 0 )
+                              {
+                                   save_errno = errno;
+                                   if ( save_errno != 0 )
+                                   {
+                                        fprintf( stderr, "\
+unwrap: Something went wrong when calling write_previous_byte().\n" );
+                                        fprintf( stderr,
+                                                 "unwrap: Error: %s.\n",
+                                                 strerror( save_errno ) );
+                                        ret = close_files( infile, outfile,
+                                                           infile_name, 
+                                                           outfile_name );
+                                        if ( ret != 0 )
+                                        {
+                                             if ( errno != 0 )
+                                             {
+                                                  save_errno = errno;
+                                                  fprintf( stderr, "\
+unwrap: Something went wrong when trying to close the file streams.\n" );
+                                                  fprintf( stderr, "\
+unwrap: Error: %s.\n", strerror( save_errno ) );
+                                             }
+                                        }
+                                   }    /* if ( save_errno != 0 ) */
+                                   exit( EXIT_FAILURE );
+                              }    /* if ( ret != 0 ) */
+                         }    /* for( count = spaces; count >= 0;
+                                      count-- ) */
+                         /*
+
+                              Keep track of the fact that we
+                              wrote out all of the pending
+                              data to the output file stream.
+
+                         */
+
+                         last = ( -1 );
+                         spaces = 0;
+
+                    }    /* if ( spaces > 0 ) */
+               }    /* if ( current == 32 ) */
+
                was_newline = 0;
-               if ( last != ( -1 ) )
+               if ( last != ( -1 ) && spaces == 0 )
                {
                     ret = write_previous_byte( last, infile, outfile,
                                                infile_name, outfile_name );
@@ -246,16 +327,102 @@ unwrap: Error: %s.\n", strerror( save_errno ) );
                          }    /* if ( save_errno != 0 ) */
                          exit( EXIT_FAILURE );
                     }    /* if ( ret != 0 ) */
-               }    /* if ( last != ( -1 ) ) */
+               }    /* if ( last != ( -1 ) && spaces == 0 ) */
 
                last = current;
           }
           else  /* current == '\n' */
           {
-               was_newline = 1;
+               /* Write out any pending spaces first. */
+
+               if ( spaces > 0 )
+               {
+                    /* Write out the newline character. */
+
+                    ret = write_previous_byte( '\n', infile, outfile,
+                                               infile_name,
+                                               outfile_name );
+                    if ( ret != 0 )
+                    {
+                         save_errno = errno;
+                         if ( save_errno != 0 )
+                         {
+                              fprintf( stderr, "\
+unwrap: Something went wrong when calling write_previous_byte().\n" );
+                              fprintf( stderr,
+                                       "unwrap: Error: %s.\n",
+                                       strerror( save_errno ) );
+                              ret = close_files( infile, outfile,
+                                                 infile_name, 
+                                                 outfile_name );
+                              if ( ret != 0 )
+                              {
+                                   if ( errno != 0 )
+                                   {
+                                        save_errno = errno;
+                                        fprintf( stderr, "\
+unwrap: Something went wrong when trying to close the file streams.\n" );
+                                        fprintf( stderr, "\
+unwrap: Error: %s.\n", strerror( save_errno ) );
+                                   }
+                              }
+                         }    /* if ( save_errno != 0 ) */
+                         exit( EXIT_FAILURE );
+                    }    /* if ( ret != 0 ) */
+
+                    /* Now write out most of the pending spaces. */
+
+                    for( count = spaces; count > 0; count-- )
+                    {
+                         ret = write_previous_byte( 32, infile, outfile,
+                                                    infile_name,
+                                                    outfile_name );
+                         if ( ret != 0 )
+                         {
+                              save_errno = errno;
+                              if ( save_errno != 0 )
+                              {
+                                   fprintf( stderr, "\
+unwrap: Something went wrong when calling write_previous_byte().\n" );
+                                   fprintf( stderr,
+                                            "unwrap: Error: %s.\n",
+                                            strerror( save_errno ) );
+                                   ret = close_files( infile, outfile,
+                                                      infile_name, 
+                                                      outfile_name );
+                                   if ( ret != 0 )
+                                   {
+                                        if ( errno != 0 )
+                                        {
+                                             save_errno = errno;
+                                             fprintf( stderr, "\
+unwrap: Something went wrong when trying to close the file streams.\n" );
+                                             fprintf( stderr, "\
+unwrap: Error: %s.\n", strerror( save_errno ) );
+                                        }
+                                   }
+                              }    /* if ( save_errno != 0 ) */
+                              exit( EXIT_FAILURE );
+                         }    /* if ( ret != 0 ) */
+                    }    /* for( count = spaces; count > 0; count-- ) */
+
+                    /*
+
+                         Keep track of the fact that we wrote
+                         out all but one of the pending spaces
+                         to the output file stream.
+
+                    */
+
+                    last = 32;
+                    spaces = 0;
+
+               }    /* if ( spaces > 0 ) */
+
                if ( last != '\n' && last != ( -1 ) )
                {
                     current = 32;  /* Space */
+                    was_newline = 1;
                }
 
                if ( last != ( -1 ) )
@@ -331,18 +498,16 @@ unwrap: Error: %s.\n", strerror( save_errno ) );
           }
      }    /* if ( !feof( infile ) && ferror( infile ) ) */
 
-     /* If nothing went wrong so far then we need to write out 'last'. */
+     /*
 
-     /* Don't write a space instead. */
+          If nothing went wrong so far then we need
+          to write out the last newline character.
+
+     */
 
      if ( was_newline == 1 )
      {
-          last = '\n';
-     }
-
-     if ( bytes > 0 )
-     {
-          ret = write_previous_byte( last, infile, outfile, infile_name,
+          ret = write_previous_byte( '\n', infile, outfile, infile_name,
                                      outfile_name );
           if ( ret != 0 )
           {
@@ -369,7 +534,72 @@ unwrap: Error: %s.\n", strerror( save_errno ) );
                }    /* if ( save_errno != 0 ) */
                exit( EXIT_FAILURE );
           }    /* if ( ret != 0 ) */
-     }    /* if ( bytes > 0 ) */
+     }
+     else if ( spaces > 0 )
+     {
+          /* Write out the newline character. */
+
+          ret = write_previous_byte( '\n', infile, outfile, infile_name,
+                                     outfile_name );
+          if ( ret != 0 )
+          {
+               save_errno = errno;
+               if ( save_errno != 0 )
+               {
+                    fprintf( stderr, "\
+unwrap: Something went wrong when calling write_previous_byte().\n" );
+                    fprintf( stderr, "unwrap: Error: %s.\n",
+                             strerror( save_errno ) );
+                    ret = close_files( infile, outfile, infile_name,
+                                       outfile_name );
+                    if ( ret != 0 )
+                    {
+                         if ( errno != 0 )
+                         {
+                              save_errno = errno;
+                              fprintf( stderr, "\
+unwrap: Something went wrong when trying to close the file streams.\n" );
+                              fprintf( stderr, "\
+unwrap: Error: %s.\n", strerror( save_errno ) );
+                         }
+                    }
+               }    /* if ( save_errno != 0 ) */
+               exit( EXIT_FAILURE );
+          }    /* if ( ret != 0 ) */
+
+          /* Now write out all of the pending spaces. */
+
+          for( count = spaces; count > 0; count-- )
+          {
+               ret = write_previous_byte( 32, infile, outfile, infile_name,
+                                          outfile_name );
+               if ( ret != 0 )
+               {
+                    save_errno = errno;
+                    if ( save_errno != 0 )
+                    {
+                         fprintf( stderr, "\
+unwrap: Something went wrong when calling write_previous_byte().\n" );
+                         fprintf( stderr, "unwrap: Error: %s.\n",
+                                  strerror( save_errno ) );
+                         ret = close_files( infile, outfile, infile_name,
+                                            outfile_name );
+                         if ( ret != 0 )
+                         {
+                              if ( errno != 0 )
+                              {
+                                   save_errno = errno;
+                                   fprintf( stderr, "\
+unwrap: Something went wrong when trying to close the file streams.\n" );
+                                   fprintf( stderr, "\
+unwrap: Error: %s.\n", strerror( save_errno ) );
+                              }
+                         }
+                    }    /* if ( save_errno != 0 ) */
+                    exit( EXIT_FAILURE );
+               }    /* if ( ret != 0 ) */
+          }    /* for( count = spaces; count > 0; count-- ) */
+     }
 
      /* Now we need to close the file streams. */
 
