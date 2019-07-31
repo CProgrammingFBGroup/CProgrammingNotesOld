@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Define out USAGE statement: */
+/* Define our USAGE statement: */
 
 #define USAGE "\
 Usage: unwrap [input file] [output file]\n\
