@@ -204,8 +204,8 @@ unwrap: Failed to close the file \"%s\".\n", argv[ 1 ] );
 
      /* Initialize: */
 
-     bytes = 0;
-     last = ( -1 );
+     bytes = was_newline = 0;
+     current = last = ( -1 );
 
      /* Go to work: */
 
@@ -340,33 +340,36 @@ unwrap: Error: %s.\n", strerror( save_errno ) );
           last = '\n';
      }
 
-     ret = write_previous_byte( last, infile, outfile, infile_name,
-                                outfile_name );
-     if ( ret != 0 )
+     if ( bytes > 0 )
      {
-          if ( errno != 0 )
+          ret = write_previous_byte( last, infile, outfile, infile_name,
+                                     outfile_name );
+          if ( ret != 0 )
           {
-               save_errno = errno;
-               fprintf( stderr, "\
-unwrap: Something went wrong when calling write_previous_byte().\n" );
-               fprintf( stderr, "unwrap: Error: %s.\n",
-                        strerror( save_errno ) );
-               ret = close_files( infile, outfile, infile_name,
-                                  outfile_name );
-               if ( ret != 0 )
+               if ( errno != 0 )
                {
-                    if ( errno != 0 )
+                    save_errno = errno;
+                    fprintf( stderr, "\
+unwrap: Something went wrong when calling write_previous_byte().\n" );
+                    fprintf( stderr, "unwrap: Error: %s.\n",
+                             strerror( save_errno ) );
+                    ret = close_files( infile, outfile, infile_name,
+                                       outfile_name );
+                    if ( ret != 0 )
                     {
-                         save_errno = errno;
-                         fprintf( stderr, "\
+                         if ( errno != 0 )
+                         {
+                              save_errno = errno;
+                              fprintf( stderr, "\
 unwrap: Something went wrong when trying to close the file streams.\n" );
-                         fprintf( stderr, "\
+                              fprintf( stderr, "\
 unwrap: Error: %s.\n", strerror( save_errno ) );
+                         }
                     }
-               }
-          }    /* if ( save_errno != 0 ) */
-          exit( EXIT_FAILURE );
-     }    /* if ( ret != 0 ) */
+               }    /* if ( save_errno != 0 ) */
+               exit( EXIT_FAILURE );
+          }    /* if ( ret != 0 ) */
+     }    /* if ( bytes > 0 ) */
 
      /* Now we need to close the file streams. */
 
